@@ -1,10 +1,13 @@
 package study.myrestfulservice.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import study.myrestfulservice.bean.User;
 import study.myrestfulservice.dao.UserDaoService;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -23,7 +26,15 @@ public class UserController {
     }
 
     @PostMapping("/users")
-    public User saveUser(@RequestBody User user) {
-        return service.save(user);
+    public ResponseEntity<User> saveUser(@RequestBody User user) {
+
+        User savedUser = service.save(user);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(savedUser.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).build();
     }
 }
