@@ -21,4 +21,9 @@ public class UserController {
     public User findUser(@PathVariable int id) {
         return service.findOne(id);
     }
+
+    @PostMapping("/users")
+    public User saveUser(@RequestBody User user) {
+        return service.save(user);
+    }
 }
