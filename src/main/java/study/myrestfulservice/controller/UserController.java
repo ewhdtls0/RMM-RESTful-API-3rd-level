@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import study.myrestfulservice.bean.User;
 import study.myrestfulservice.dao.UserDaoService;
+import study.myrestfulservice.exception.UserNotFoundException;
 
 import java.net.URI;
 import java.util.List;
@@ -21,8 +22,12 @@ public class UserController {
     }
 
     @GetMapping("/users/{id}")
-    public User findUser(@PathVariable int id) {
-        return service.findOne(id);
+    public ResponseEntity<User> findUser(@PathVariable int id) {
+        User findUser = service.findOne(id);
+        if (findUser == null) {
+            throw new UserNotFoundException(String.format("ID[%s] not found", id));
+        }
+        return ResponseEntity.ok(findUser);
     }
 
     @PostMapping("/users")
