@@ -11,6 +11,7 @@ import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import study.myrestfulservice.bean.AdminUser;
+import study.myrestfulservice.bean.AdminUserV2;
 import study.myrestfulservice.bean.User;
 import study.myrestfulservice.dao.UserDaoService;
 import study.myrestfulservice.exception.UserNotFoundException;
@@ -25,7 +26,7 @@ import java.util.List;
 public class AdminUserController {
     private final UserDaoService service;
 
-    @GetMapping("/users")
+    @GetMapping("/v1/users")
     public MappingJacksonValue findAllUsers() {
         List<User> allUsers = service.findAll();
 
@@ -45,7 +46,7 @@ public class AdminUserController {
         return mapping;
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/v1/users/{id}")
     public MappingJacksonValue findUser4Admin(@PathVariable int id) {
         User findUser = service.findOne(id);
 
@@ -65,7 +66,28 @@ public class AdminUserController {
         return mapping;
     }
 
-    @PostMapping("/users")
+    @GetMapping("/v2/users/{id}")
+    public MappingJacksonValue findUser4AdminV2(@PathVariable int id) {
+        User findUser = service.findOne(id);
+
+        AdminUserV2 adminUser = new AdminUserV2();
+        if (findUser == null) {
+            throw new UserNotFoundException(String.format("ID[%s] not found", id));
+        } else {
+            BeanUtils.copyProperties(findUser, adminUser);
+            adminUser.setGrade("VIP");
+        }
+
+        SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id", "name", "joinDate", "grade");
+        FilterProvider filters = new SimpleFilterProvider().addFilter("UserInfoV2", filter);
+
+        MappingJacksonValue mapping = new MappingJacksonValue(adminUser);
+        mapping.setFilters(filters);
+
+        return mapping;
+    }
+
+    @PostMapping("/v1/users")
     public ResponseEntity<User> saveUser(@Valid @RequestBody User user) {
 
         User savedUser = service.save(user);
@@ -78,7 +100,7 @@ public class AdminUserController {
         return ResponseEntity.created(location).build();
     }
 
-    @DeleteMapping("/users/{id}")
+    @DeleteMapping("/v1/users/{id}")
     public ResponseEntity<User> deleteUser(@PathVariable int id) {
         User deletedUser = service.deleteById(id);
 
