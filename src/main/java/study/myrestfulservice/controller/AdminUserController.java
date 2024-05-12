@@ -16,6 +16,7 @@ import study.myrestfulservice.dao.UserDaoService;
 import study.myrestfulservice.exception.UserNotFoundException;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -25,8 +26,23 @@ public class AdminUserController {
     private final UserDaoService service;
 
     @GetMapping("/users")
-    public List<User> findAllUsers() {
-        return service.findAll();
+    public MappingJacksonValue findAllUsers() {
+        List<User> allUsers = service.findAll();
+
+        List<AdminUser> adminUsers = new ArrayList<>();
+        MappingJacksonValue mapping = null;
+        for (User user : allUsers) {
+            AdminUser adminUser = new AdminUser();
+            BeanUtils.copyProperties(user, adminUser);
+            adminUsers.add(adminUser);
+            SimpleBeanPropertyFilter filter = SimpleBeanPropertyFilter.filterOutAllExcept("id", "name", "joinDate", "ssn");
+            FilterProvider filters = new SimpleFilterProvider().addFilter("UserInfo", filter);
+
+            mapping = new MappingJacksonValue(adminUsers);
+            mapping.setFilters(filters);
+        }
+        
+        return mapping;
     }
 
     @GetMapping("/users/{id}")
